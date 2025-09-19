@@ -7,8 +7,8 @@ import base64
 import hmac
 import hashlib
 import json
-import websocket
-import threading
+import asyncio
+import websockets
 
 class OKXAccount:
     BASE_URL = "https://www.okx.com"
@@ -112,40 +112,31 @@ class OKXAccount:
             args["x-simulated-trading"] = "1"
         return {"op": "login", "args": [args]}
 
-    def _on_message(self, ws, message):
-        msg = json.loads(message)
-        if "arg" in msg and "data" in msg:
-            channel = msg["arg"]["channel"]
-            if channel == "tickers":
-                price = msg["data"][0]["last"]
-                print(f"📈 实时价格 {msg['arg']['instId']} = {price}")
-            elif channel == "positions":
-                pos = msg["data"][0]
-                print(f"📊 仓位变化: {pos}")
+    async def _ws_public(self, instId):
+        async with websockets.connect(self.WS_PUBLIC) as ws:
+            sub = {"op": "subscribe", "args": [{"channel": "tickers", "instId": instId}]}
+            await ws.send(json.dumps(sub))
+            async for msg in ws:
+                data = json.loads(msg)
+                if "arg" in data and data["arg"]["channel"] == "tickers":
+                    price = data["data"][0]["last"]
+                    print(f"📈 实时价格 {instId} = {price}")
 
-    def _on_open_public(self, ws, instId):
-        sub = {"op": "subscribe", "args": [{"channel": "tickers", "instId": instId}]}
-        ws.send(json.dumps(sub))
+    async def _ws_private(self):
+        async with websockets.connect(self.WS_PRIVATE) as ws:
+            # 登录
+            await ws.send(json.dumps(self._login_params()))
+            # 订阅仓位
+            sub = {"op": "subscribe", "args": [{"channel": "positions", "instType": "SWAP"}]}
+            await ws.send(json.dumps(sub))
+            async for msg in ws:
+                data = json.loads(msg)
+                if "arg" in data and data["arg"]["channel"] == "positions":
+                    pos = data["data"][0]
+                    print(f"📊 仓位变化: {pos}")
 
-    def _on_open_private(self, ws):
-        ws.send(json.dumps(self._login_params()))
-        time.sleep(1)
-        sub = {"op": "subscribe", "args": [{"channel": "positions", "instType": "SWAP"}]}
-        ws.send(json.dumps(sub))
-
-    def start_ws(self, instId="BTC-USDT"):
-        # 公共行情订阅
-        t1 = threading.Thread(target=lambda: websocket.WebSocketApp(
-            self.WS_PUBLIC,
-            on_message=self._on_message,
-            on_open=lambda ws: self._on_open_public(ws, instId)
-        ).run_forever())
-        t1.start()
-
-        # 私有仓位订阅
-        t2 = threading.Thread(target=lambda: websocket.WebSocketApp(
-            self.WS_PRIVATE,
-            on_message=self._on_message,
-            on_open=self._on_open_private
-        ).run_forever())
-        t2.start()
+    async def start_ws(self, instId="BTC-USDT"):
+        await asyncio.gather(
+            self._ws_public(instId),
+            self._ws_private()
+        )
