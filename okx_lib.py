@@ -78,7 +78,23 @@ def get_price(instId="SOL-USDC"):
     except Exception as e:
         return {"error": str(e)}
 
-def place_order(instId="SOL-USDC-SWAP", tdMode="cross", side="buy", ordType="market", sz="1"):
+def place_order(instId="SOL-USDC-SWAP", tdMode="cross", side="buy", ordType="market", sz="1", px=None, posSide=None, reduceOnly=False):
+    """
+    Place an order.
+
+    Args:
+      instId: instrument id, e.g. "SOL-USDC-SWAP" for swap.
+      tdMode: trading mode, e.g. "cross" or "isolated".
+      side: "buy" or "sell". For opening a short position usually use side="sell".
+      ordType: "market" or "limit".
+      sz: size (quantity) as string or number.
+      px: price for limit orders (optional).
+      posSide: optional, "long" or "short" in dual-side position mode.
+      reduceOnly: optional bool, set True to mark order as reduce-only.
+
+    Note: behaviour depends on your OKX account/market settings (single-side vs dual-side). If your account uses
+    dual-side (hedged) mode and you need to explicitly open a short, pass posSide="short" and side="sell".
+    """
     path = "/api/v5/trade/order"
     url = BASE_URL + path
     body = {
@@ -86,8 +102,20 @@ def place_order(instId="SOL-USDC-SWAP", tdMode="cross", side="buy", ordType="mar
         "tdMode": tdMode,
         "side": side,
         "ordType": ordType,
-        "sz": sz
+        "sz": str(sz)
     }
+
+    # 可选参数
+    if px is not None:
+        # OKX 接口期望字符串形式的价格
+        body["px"] = str(px)
+    if posSide is not None:
+        # "long" or "short"（仅在双向持仓模式需要）
+        body["posSide"] = posSide
+    if reduceOnly:
+        # 标记为只减仓（布尔值或字符串均可，API 会接受 true/false）
+        body["reduceOnly"] = True
+
     body_str = json.dumps(body)
     try:
         resp = requests.post(url, headers=_headers("POST", path, body_str), data=body_str)
@@ -195,6 +223,23 @@ def start_ws():
     ).run_forever())
     t2.start()
 
+def build_order_payload(instId="SOL-USDC-SWAP", tdMode="cross", side="buy", ordType="market", sz="1", px=None, posSide=None, reduceOnly=False):
+    """Return the order payload dictionary without sending it. Useful for testing payload composition."""
+    body = {
+        "instId": instId,
+        "tdMode": tdMode,
+        "side": side,
+        "ordType": ordType,
+        "sz": str(sz)
+    }
+    if px is not None:
+        body["px"] = str(px)
+    if posSide is not None:
+        body["posSide"] = posSide
+    if reduceOnly:
+        body["reduceOnly"] = True
+    return body
+
 # ============ 示例 ============
 if __name__ == "__main__":
     print("💰 账户余额:", get_balance("USDT"))
@@ -203,5 +248,10 @@ if __name__ == "__main__":
 
     start_ws()
 
+    # demo: 构造一个开空（卖空）限价单的 payload（仅打印，不发送）
+    demo_payload = build_order_payload(instId="SOL-USDC-SWAP", tdMode="cross", side="sell", ordType="limit", sz=1, px=6.5, posSide="short", reduceOnly=False)
+    print("示例下单 payload (开空):", json.dumps(demo_payload, ensure_ascii=False))
+
+    # keep WS running
     while True:
         time.sleep(10)
