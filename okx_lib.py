@@ -20,12 +20,12 @@ except Exception:
     # 如果没有安装 python-dotenv，也可以直接依赖环境变量
     pass
 
-API_KEY = os.getenv('API_KEY', "你的APIKEY")
-API_SECRET = os.getenv('API_SECRET', "你的SECRET")
-PASSPHRASE = os.getenv('PASSPHRASE', "你的PASSPHRASE")
-BASE_URL = os.getenv('BASE_URL', "https://www.okx.com")
-WS_PUBLIC = os.getenv('WS_PUBLIC', "wss://ws.okx.com:8443/ws/v5/public")
-WS_PRIVATE = os.getenv('WS_PRIVATE', "wss://ws.okx.com:8443/ws/v5/private")
+API_KEY = os.getenv('OKX_API_KEY', "你的APIKEY")
+API_SECRET = os.getenv('OKX_API_SECRET', "你的SECRET")
+PASSPHRASE = os.getenv('OKX_PASSPHRASE', "你的PASSPHRASE")
+BASE_URL = os.getenv('OKX_BASE_URL', "https://www.okx.com")
+WS_PUBLIC = os.getenv('OKX_WS_PUBLIC', "wss://ws.okx.com:8443/ws/v5/public")
+WS_PRIVATE = os.getenv('OKX_WS_PRIVATE', "wss://ws.okx.com:8443/ws/v5/private")
 
 # ============ 签名工具 ============
 def _sign(message: str, secret_key: str):
