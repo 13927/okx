@@ -5,6 +5,7 @@ import base64
 import hmac
 import hashlib
 import json
+from urllib.parse import urlencode
 import asyncio
 import websockets
 import logging
@@ -92,7 +93,15 @@ class OKXAccount:
     def _request(self, method, path, params=None, body=None, private=False):
         url = self.BASE_URL + path
         body_str = json.dumps(body) if body else ""
-        headers = self._headers(method, path, body_str) if private else {}
+
+        # 如果是私有请求且存在 params，把 params 编码并追加到 request path 用于签名
+        request_path_for_sign = path
+        if private and params:
+            # urlencode 保持参数顺序不变；如果需要按字母排序可改为 sorted(params.items())
+            qs = urlencode(params, doseq=True)
+            request_path_for_sign = path + "?" + qs
+
+        headers = self._headers(method, request_path_for_sign, body_str) if private else {}
         # DEBUG 时记录请求体（已遮掩敏感字段）
         if self.logger.isEnabledFor(logging.DEBUG) and private:
             try:
@@ -211,8 +220,9 @@ class OKXAccount:
 
     # ============ WebSocket ============
     def _login_params(self):
-        # ts = str(time.time())
-        ts = self._now_iso()
+        # WebSocket login requires timestamp as Unix epoch seconds (string),
+        # e.g. Date.now()/1000 in JS. Use float seconds to include milliseconds.
+        ts = str(time.time())
         sign = self._sign(ts + "GET" + "/users/self/verify")
         args = {
             "apiKey": self.api_key,
