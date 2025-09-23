@@ -45,7 +45,7 @@ async def main():
     pjson("💰 账户余额", okx.get_balance("USDT"))
 
     # 2. 获取当前价格
-    price_info = okx.get_price("BTC-USDT")
+    price_info = okx.get_price("SOL-USDC")
     pjson("📈 价格", price_info)
 
     # 2.1 查看账户配置示例
@@ -54,21 +54,21 @@ async def main():
 
     # 2.2 获取交易手续费费率示例（五类产品）
     try:
-        fee_spot = okx.get_trade_fee(instType="SPOT", instId="BTC-USDT")
-        pjson("💸 手续费[SPOT BTC-USDT]", fee_spot)
+        fee_spot = okx.get_trade_fee(instType="SPOT", instId="SOL-USDC")
+        pjson("💸 手续费[SPOT SOL-USDC]", fee_spot)
     except Exception as e:
         print("获取 SPOT 手续费失败:", e)
 
     try:
-        fee_margin = okx.get_trade_fee(instType="MARGIN", instId="BTC-USDT")
-        pjson("💸 手续费[MARGIN BTC-USDT]", fee_margin)
+        fee_margin = okx.get_trade_fee(instType="MARGIN", instId="SOL-USDC")
+        pjson("💸 手续费[MARGIN SOL-USDC]", fee_margin)
     except Exception as e:
         print("获取 MARGIN 手续费失败:", e)
 
     try:
-        # 永续：按交易品种（instFamily），如 BTC-USDT
-        fee_swap = okx.get_trade_fee(instType="SWAP", instFamily="BTC-USDT")
-        pjson("💸 手续费[SWAP BTC-USDT]", fee_swap)
+        # 永续：按交易品种（instFamily），如 SOL-USDC
+        fee_swap = okx.get_trade_fee(instType="SWAP", instFamily="SOL-USDC")
+        pjson("💸 手续费[SWAP SOL-USDC]", fee_swap)
     except Exception as e:
         print("获取 SWAP 手续费失败:", e)
 
@@ -86,10 +86,10 @@ async def main():
     except Exception as e:
         print("获取 OPTION 手续费失败:", e)
 
-    # # 3. 下单 (示例：开空 1 张 BTC-USDT-SWAP)
+    # # 3. 下单 (示例：开空 1 张 SOL-USDC-SWAP)
     # # 3. 下单示例：现货市场下单（示例为市价买入 0.001 BTC）
     # order = okx.place_order(
-    #     instId="BTC-USDT",
+    #     instId="SOL-USDC",
     #     side="buy",
     #     ordType="market",
     #     sz="0.001"
@@ -101,15 +101,15 @@ async def main():
 
     # # 4. 查询订单
     # if ordId:
-    #     query = okx.query_order("BTC-USDT-SWAP", ordId=ordId)
+    #     query = okx.query_order("SOL-USDC-SWAP", ordId=ordId)
     #     print("🔍 查询订单:", query)
 
     #     # 5. 撤单
-    #     cancel = okx.cancel_order("BTC-USDT-SWAP", ordId=ordId)
+    #     cancel = okx.cancel_order("SOL-USDC-SWAP", ordId=ordId)
     #     print("❌ 撤单:", cancel)
 
     # 6. 启动 WebSocket 监听行情+仓位（异步）
-    # await okx.start_ws("BTC-USDT")
+    # await okx.start_ws("SOL-USDC")
 
 if __name__ == "__main__":
     asyncio.run(main())
