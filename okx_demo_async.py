@@ -45,9 +45,39 @@ async def main():
     cfg = okx.get_account_config()
     print("🧾 账户配置:", cfg)
 
-    # 2.2 获取交易手续费费率示例（币币 BTC-USDT）
-    fee = okx.get_trade_fee(instType="SPOT", instId="BTC-USDT")
-    print("💸 交易手续费费率:", fee)
+    # 2.2 获取交易手续费费率示例（五类产品）
+    try:
+        fee_spot = okx.get_trade_fee(instType="SPOT", instId="BTC-USDT")
+        print("💸 手续费[SPOT BTC-USDT]:", fee_spot)
+    except Exception as e:
+        print("获取 SPOT 手续费失败:", e)
+
+    try:
+        fee_margin = okx.get_trade_fee(instType="MARGIN", instId="BTC-USDT")
+        print("💸 手续费[MARGIN BTC-USDT]:", fee_margin)
+    except Exception as e:
+        print("获取 MARGIN 手续费失败:", e)
+
+    try:
+        # 永续：按交易品种（instFamily），如 BTC-USDT
+        fee_swap = okx.get_trade_fee(instType="SWAP", instFamily="BTC-USDT")
+        print("💸 手续费[SWAP BTC-USDT]:", fee_swap)
+    except Exception as e:
+        print("获取 SWAP 手续费失败:", e)
+
+    try:
+        # 交割：常用交易品种 BTC-USD
+        fee_futures = okx.get_trade_fee(instType="FUTURES", instFamily="BTC-USD")
+        print("💸 手续费[FUTURES BTC-USD]:", fee_futures)
+    except Exception as e:
+        print("获取 FUTURES 手续费失败:", e)
+
+    try:
+        # 期权：常用交易品种 BTC-USD
+        fee_option = okx.get_trade_fee(instType="OPTION", instFamily="BTC-USD")
+        print("💸 手续费[OPTION BTC-USD]:", fee_option)
+    except Exception as e:
+        print("获取 OPTION 手续费失败:", e)
 
     # 3. 下单 (示例：开空 1 张 BTC-USDT-SWAP)
     # 3. 下单示例：现货市场下单（示例为市价买入 0.001 BTC）
@@ -72,7 +102,7 @@ async def main():
         print("❌ 撤单:", cancel)
 
     # 6. 启动 WebSocket 监听行情+仓位（异步）
-    await okx.start_ws("BTC-USDT")
+    # await okx.start_ws("BTC-USDT")
 
 if __name__ == "__main__":
     asyncio.run(main())
