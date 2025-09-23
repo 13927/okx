@@ -73,13 +73,13 @@ async def main():
             "tdMode": "cross",
             "side": "sell",
             "ordType": "market",
-            "sz": "1",
+            "sz": "0.001",
         }
         if pos_mode == "long_short_mode":
             order_args["posSide"] = "short"
 
         order = okx.place_order(**order_args)
-        pjson("🟢 下空单[SOL-USDT-SWAP sz=1]", order)
+        pjson("🟢 下空单[SOL-USDT-SWAP sz=0.001]", order)
     except Exception as e:
         print("下空单失败:", e)
 
