@@ -44,72 +44,59 @@ async def main():
     # 1. 查询余额
     pjson("💰 账户余额", okx.get_balance("USDT"))
 
-    # 2. 获取当前价格
-    price_info = okx.get_price("SOL-USDC")
-    pjson("📈 价格", price_info)
+    # 2. 获取当前价格（永续合约 SOL-USDT-SWAP）
+    price_info = okx.get_price("SOL-USDT-SWAP")
+    pjson("📈 价格SOL-USDT-SWAP", price_info)
 
     # 2.1 查看账户配置示例
     cfg = okx.get_account_config()
     pjson("🧾 账户配置", cfg)
 
-    # 2.2 获取交易手续费费率示例（五类产品）
+    # 2.2 获取交易手续费费率示例（仅 SWAP：SOL-USDT）
     try:
-        fee_spot = okx.get_trade_fee(instType="SPOT", instId="SOL-USDC")
-        pjson("💸 手续费[SPOT SOL-USDC]", fee_spot)
+        fee_swap = okx.get_trade_fee(instType="SWAP", instFamily="SOL-USDT")
+        pjson("💸 手续费[SWAP SOL-USDT]", fee_swap)
     except Exception as e:
-        print("获取 SPOT 手续费失败:", e)
+        print("获取 SOL-USDT-SWAP 手续费失败:", e)
 
+    # 3. 下单 (示例：SOL-USDT-SWAP 开空，量尽可能小: 1张)
     try:
-        fee_margin = okx.get_trade_fee(instType="MARGIN", instId="SOL-USDC")
-        pjson("💸 手续费[MARGIN SOL-USDC]", fee_margin)
-    except Exception as e:
-        print("获取 MARGIN 手续费失败:", e)
+        pos_mode = None
+        try:
+            if isinstance(cfg, dict) and cfg.get("data"):
+                pos_mode = cfg["data"][0].get("posMode")
+        except Exception:
+            pass
 
-    try:
-        # 永续：按交易品种（instFamily），如 SOL-USDC
-        fee_swap = okx.get_trade_fee(instType="SWAP", instFamily="SOL-USDC")
-        pjson("💸 手续费[SWAP SOL-USDC]", fee_swap)
-    except Exception as e:
-        print("获取 SWAP 手续费失败:", e)
+        order_args = {
+            "instId": "SOL-USDT-SWAP",
+            "tdMode": "cross",
+            "side": "sell",
+            "ordType": "market",
+            "sz": "1",
+        }
+        if pos_mode == "long_short_mode":
+            order_args["posSide"] = "short"
 
-    try:
-        # 交割：常用交易品种 SOL-USDC
-        fee_futures = okx.get_trade_fee(instType="FUTURES", instFamily="SOL-USDC")
-        pjson("💸 手续费[FUTURES SOL-USDC]", fee_futures)
+        order = okx.place_order(**order_args)
+        pjson("🟢 下空单[SOL-USDT-SWAP sz=1]", order)
     except Exception as e:
-        print("获取 FUTURES 手续费失败:", e)
-
-    try:
-        # 期权：常用交易品种 SOL-USDC
-        fee_option = okx.get_trade_fee(instType="OPTION", instFamily="SOL-USDC")
-        pjson("💸 手续费[OPTION SOL-USDC]", fee_option)
-    except Exception as e:
-        print("获取 OPTION 手续费失败:", e)
-
-    # 3. 下单 (示例：开空 1 张 SOL-USDC-SWAP)
-    # 3. 下单示例：现货市场下单（示例为市价买入 0.001 BTC）
-    order = okx.place_order(
-        instId="SOL-USDC",
-        side="buy",
-        ordType="market",
-        sz="0.001"
-    )
-    print("🟢 下单:", order)
+        print("下空单失败:", e)
 
     # # 提取订单号
     # ordId = order.get("data", [{}])[0].get("ordId")
 
     # # 4. 查询订单
     # if ordId:
-    #     query = okx.query_order("SOL-USDC-SWAP", ordId=ordId)
+    #     query = okx.query_order("SOL-USDT-SWAP", ordId=ordId)
     #     print("🔍 查询订单:", query)
 
     #     # 5. 撤单
-    #     cancel = okx.cancel_order("SOL-USDC-SWAP", ordId=ordId)
+    #     cancel = okx.cancel_order("SOL-USDT-SWAP", ordId=ordId)
     #     print("❌ 撤单:", cancel)
 
     # 6. 启动 WebSocket 监听行情+仓位（异步）
-    # await okx.start_ws("SOL-USDC")
+    # await okx.start_ws("SOL-USDT")
 
 if __name__ == "__main__":
     asyncio.run(main())
