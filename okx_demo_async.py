@@ -1,4 +1,5 @@
 import logging
+import json
 from okx_account import OKXAccount
 import asyncio
 import os
@@ -34,72 +35,78 @@ async def main():
     # 初始化账户 (设置 simulated=True 使用模拟盘)
     okx = OKXAccount(API_KEY, API_SECRET, PASSPHRASE, simulated=False)
 
+    def pjson(label, obj):
+        try:
+            print(f"{label}:\n{json.dumps(obj, ensure_ascii=False, indent=2, sort_keys=True, default=str)}")
+        except Exception as e:
+            print(f"{label} (format error: {e}): {obj}")
+
     # 1. 查询余额
-    print("💰 账户余额:", okx.get_balance("USDT"))
+    pjson("💰 账户余额", okx.get_balance("USDT"))
 
     # 2. 获取当前价格
     price_info = okx.get_price("BTC-USDT")
-    print("📈 价格:", price_info)
+    pjson("📈 价格", price_info)
 
     # 2.1 查看账户配置示例
     cfg = okx.get_account_config()
-    print("🧾 账户配置:", cfg)
+    pjson("🧾 账户配置", cfg)
 
     # 2.2 获取交易手续费费率示例（五类产品）
     try:
         fee_spot = okx.get_trade_fee(instType="SPOT", instId="BTC-USDT")
-        print("💸 手续费[SPOT BTC-USDT]:", fee_spot)
+        pjson("💸 手续费[SPOT BTC-USDT]", fee_spot)
     except Exception as e:
         print("获取 SPOT 手续费失败:", e)
 
     try:
         fee_margin = okx.get_trade_fee(instType="MARGIN", instId="BTC-USDT")
-        print("💸 手续费[MARGIN BTC-USDT]:", fee_margin)
+        pjson("💸 手续费[MARGIN BTC-USDT]", fee_margin)
     except Exception as e:
         print("获取 MARGIN 手续费失败:", e)
 
     try:
         # 永续：按交易品种（instFamily），如 BTC-USDT
         fee_swap = okx.get_trade_fee(instType="SWAP", instFamily="BTC-USDT")
-        print("💸 手续费[SWAP BTC-USDT]:", fee_swap)
+        pjson("💸 手续费[SWAP BTC-USDT]", fee_swap)
     except Exception as e:
         print("获取 SWAP 手续费失败:", e)
 
     try:
         # 交割：常用交易品种 BTC-USD
         fee_futures = okx.get_trade_fee(instType="FUTURES", instFamily="BTC-USD")
-        print("💸 手续费[FUTURES BTC-USD]:", fee_futures)
+        pjson("💸 手续费[FUTURES BTC-USD]", fee_futures)
     except Exception as e:
         print("获取 FUTURES 手续费失败:", e)
 
     try:
         # 期权：常用交易品种 BTC-USD
         fee_option = okx.get_trade_fee(instType="OPTION", instFamily="BTC-USD")
-        print("💸 手续费[OPTION BTC-USD]:", fee_option)
+        pjson("💸 手续费[OPTION BTC-USD]", fee_option)
     except Exception as e:
         print("获取 OPTION 手续费失败:", e)
 
-    # 3. 下单 (示例：开空 1 张 BTC-USDT-SWAP)
-    # 3. 下单示例：现货市场下单（示例为市价买入 0.001 BTC）
-    order = okx.place_order(
-        instId="BTC-USDT",
-        side="buy",
-        ordType="market",
-        sz="0.001"
-    )
-    print("🟢 下单:", order)
+    # # 3. 下单 (示例：开空 1 张 BTC-USDT-SWAP)
+    # # 3. 下单示例：现货市场下单（示例为市价买入 0.001 BTC）
+    # order = okx.place_order(
+    #     instId="BTC-USDT",
+    #     side="buy",
+    #     ordType="market",
+    #     sz="0.001"
+    # )
+    # print("🟢 下单:", order)
 
-    # 提取订单号
-    ordId = order.get("data", [{}])[0].get("ordId")
+    # # 提取订单号
+    # ordId = order.get("data", [{}])[0].get("ordId")
 
-    # 4. 查询订单
-    if ordId:
-        query = okx.query_order("BTC-USDT-SWAP", ordId=ordId)
-        print("🔍 查询订单:", query)
+    # # 4. 查询订单
+    # if ordId:
+    #     query = okx.query_order("BTC-USDT-SWAP", ordId=ordId)
+    #     print("🔍 查询订单:", query)
 
-        # 5. 撤单
-        cancel = okx.cancel_order("BTC-USDT-SWAP", ordId=ordId)
-        print("❌ 撤单:", cancel)
+    #     # 5. 撤单
+    #     cancel = okx.cancel_order("BTC-USDT-SWAP", ordId=ordId)
+    #     print("❌ 撤单:", cancel)
 
     # 6. 启动 WebSocket 监听行情+仓位（异步）
     # await okx.start_ws("BTC-USDT")
