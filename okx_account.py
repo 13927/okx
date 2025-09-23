@@ -142,6 +142,42 @@ class OKXAccount:
             params["posId"] = posId
         return self._request("GET", path, params=params, private=True)
 
+    def get_account_config(self):
+        """
+        查看账户配置
+        文档: GET /api/v5/account/config
+
+        返回示例参见 OKX 文档，包含 acctLv、posMode、perm 等字段。
+        """
+        path = "/api/v5/account/config"
+        return self._request("GET", path, private=True)
+
+    def get_trade_fee(self, instType, instId=None, instFamily=None, ruleType=None):
+        """
+        获取当前账户交易手续费费率
+        文档: GET /api/v5/account/trade-fee
+
+        参数:
+        - instType: 必填，SPOT/MARGIN/SWAP/FUTURES/OPTION
+        - instId: 选填，产品ID（仅适用于币币/币币杠杆）
+        - instFamily: 选填，交易品种（适用于交割/永续/期权，如 BTC-USD）
+        - ruleType: 选填，normal 或 pre_market（与 instId/instFamily 互斥）
+        """
+        if not instType:
+            raise ValueError("instType is required")
+        if ruleType and (instId or instFamily):
+            raise ValueError("ruleType cannot be used with instId/instFamily")
+
+        path = "/api/v5/account/trade-fee"
+        params = {"instType": instType}
+        if instId:
+            params["instId"] = instId
+        if instFamily:
+            params["instFamily"] = instFamily
+        if ruleType:
+            params["ruleType"] = ruleType
+        return self._request("GET", path, params=params, private=True)
+
     def get_price(self, instId="BTC-USDT"):
         path = "/api/v5/market/ticker"
         params = {"instId": instId}

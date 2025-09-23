@@ -32,7 +32,7 @@ if not all([API_KEY, API_SECRET, PASSPHRASE]):
 
 async def main():
     # 初始化账户 (设置 simulated=True 使用模拟盘)
-    okx = OKXAccount(API_KEY, API_SECRET, PASSPHRASE, simulated=True)
+    okx = OKXAccount(API_KEY, API_SECRET, PASSPHRASE, simulated=False)
 
     # 1. 查询余额
     print("💰 账户余额:", okx.get_balance("USDT"))
@@ -40,6 +40,14 @@ async def main():
     # 2. 获取当前价格
     price_info = okx.get_price("BTC-USDT")
     print("📈 价格:", price_info)
+
+    # 2.1 查看账户配置示例
+    cfg = okx.get_account_config()
+    print("🧾 账户配置:", cfg)
+
+    # 2.2 获取交易手续费费率示例（币币 BTC-USDT）
+    fee = okx.get_trade_fee(instType="SPOT", instId="BTC-USDT")
+    print("💸 交易手续费费率:", fee)
 
     # 3. 下单 (示例：开空 1 张 BTC-USDT-SWAP)
     # 3. 下单示例：现货市场下单（示例为市价买入 0.001 BTC）
