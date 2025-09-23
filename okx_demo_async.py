@@ -73,28 +73,28 @@ async def main():
         print("获取 SWAP 手续费失败:", e)
 
     try:
-        # 交割：常用交易品种 BTC-USD
-        fee_futures = okx.get_trade_fee(instType="FUTURES", instFamily="BTC-USD")
-        pjson("💸 手续费[FUTURES BTC-USD]", fee_futures)
+        # 交割：常用交易品种 SOL-USDC
+        fee_futures = okx.get_trade_fee(instType="FUTURES", instFamily="SOL-USDC")
+        pjson("💸 手续费[FUTURES SOL-USDC]", fee_futures)
     except Exception as e:
         print("获取 FUTURES 手续费失败:", e)
 
     try:
-        # 期权：常用交易品种 BTC-USD
-        fee_option = okx.get_trade_fee(instType="OPTION", instFamily="BTC-USD")
-        pjson("💸 手续费[OPTION BTC-USD]", fee_option)
+        # 期权：常用交易品种 SOL-USDC
+        fee_option = okx.get_trade_fee(instType="OPTION", instFamily="SOL-USDC")
+        pjson("💸 手续费[OPTION SOL-USDC]", fee_option)
     except Exception as e:
         print("获取 OPTION 手续费失败:", e)
 
-    # # 3. 下单 (示例：开空 1 张 SOL-USDC-SWAP)
-    # # 3. 下单示例：现货市场下单（示例为市价买入 0.001 BTC）
-    # order = okx.place_order(
-    #     instId="SOL-USDC",
-    #     side="buy",
-    #     ordType="market",
-    #     sz="0.001"
-    # )
-    # print("🟢 下单:", order)
+    # 3. 下单 (示例：开空 1 张 SOL-USDC-SWAP)
+    # 3. 下单示例：现货市场下单（示例为市价买入 0.001 BTC）
+    order = okx.place_order(
+        instId="SOL-USDC",
+        side="buy",
+        ordType="market",
+        sz="0.001"
+    )
+    print("🟢 下单:", order)
 
     # # 提取订单号
     # ordId = order.get("data", [{}])[0].get("ordId")
